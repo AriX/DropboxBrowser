@@ -101,9 +101,6 @@ NS_CLASS_AVAILABLE_IOS(6_0) @interface DropboxBrowserViewController : UITableVie
 @property (nonatomic, strong, readonly) UIProgressView *downloadProgressView;
 
 
-/// Deliver notifications to the user about file downloads
-@property (nonatomic, assign) BOOL deliverDownloadNotifications;
-
 /// Display a search bar in the DropboxBrowser
 @property (nonatomic, assign) BOOL shouldDisplaySearchBar;
 

@@ -54,8 +54,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
 @property (nonatomic, assign) BOOL isLocalFileOverwritten;
 @property (nonatomic, assign) BOOL isSearching;
 
-@property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundProcess;
-
 @property (nonatomic, strong) DropboxBrowserViewController *subdirectoryController;
 
 - (DBRestClient *)restClient;
@@ -287,7 +285,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
             self.subdirectoryController.currentPath = subpath;
             self.subdirectoryController.title = [subpath lastPathComponent];
             self.subdirectoryController.shouldDisplaySearchBar = self.shouldDisplaySearchBar;
-            self.subdirectoryController.deliverDownloadNotifications = self.deliverDownloadNotifications;
             self.subdirectoryController.allowedFileTypes = self.allowedFileTypes;
             self.subdirectoryController.tableCellID = self.tableCellID;
             
@@ -439,18 +436,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
     }];
     
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"File Downloaded", @"DropboxBrowser: Alert Title") message:[NSString stringWithFormat:NSLocalizedString(@"%@ was downloaded from Dropbox.", @"DropboxBrowser: Alert Message"), self.currentFileName] delegate:nil cancelButtonTitle:NSLocalizedString(@"Okay", @"DropboxBrowser: Alert Button") otherButtonTitles:nil];
-    [alertView show];
-    
-    // Deliver File Download Notification
-    if (self.deliverDownloadNotifications == YES) {
-        UILocalNotification *localNotification = [[UILocalNotification alloc] init];
-        localNotification.alertBody = [NSString stringWithFormat:NSLocalizedString(@"Downloaded %@ from Dropbox", @"DropboxBrowser: Notification Body Text"), self.currentFileName];
-        localNotification.soundName = UILocalNotificationDefaultSoundName;
-        [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
-        if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:deliveredFileDownloadNotification:)])
-            [[self rootViewDelegate] dropboxBrowser:self deliveredFileDownloadNotification:localNotification];
-    }
     
     if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:didDownloadFile:didOverwriteFile:)]) {
         [self.rootViewDelegate dropboxBrowser:self didDownloadFile:self.currentFileName didOverwriteFile:self.isLocalFileOverwritten];
@@ -462,9 +447,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
         [[self rootViewDelegate] dropboxBrowser:self downloadedFile:self.currentFileName];
     }
 #pragma clang diagnostic pop
-    
-    // End the background task
-    [[UIApplication sharedApplication] endBackgroundTask:self.backgroundProcess];
 }
 
 - (void)startDownloadFile {
@@ -485,16 +467,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
     self.navigationItem.title = [self.currentPath lastPathComponent];
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
     
-    // Deliver File Download Notification
-    if (self.deliverDownloadNotifications == YES) {
-        UILocalNotification *localNotification = [[UILocalNotification alloc] init];
-        localNotification.alertBody = [NSString stringWithFormat:NSLocalizedString(@"Failed to download %@ from Dropbox.", @"DropboxBrowser: Notification Body Text"), self.currentFileName];
-        localNotification.soundName = UILocalNotificationDefaultSoundName;
-        [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
-        if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:deliveredFileDownloadNotification:)])
-            [[self rootViewDelegate] dropboxBrowser:self deliveredFileDownloadNotification:localNotification];
-    }
-    
     if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:didFailToDownloadFile:)]) {
         [self.rootViewDelegate dropboxBrowser:self didFailToDownloadFile:self.currentFileName];
     } else if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:failedToDownloadFile:)]) {
@@ -503,9 +475,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
         [[self rootViewDelegate] dropboxBrowser:self failedToDownloadFile:self.currentFileName];
 #pragma clang diagnostic pop
     }
-    
-    // End the background task
-    [[UIApplication sharedApplication] endBackgroundTask:self.backgroundProcess];
 }
 
 - (void)updateDownloadProgressTo:(CGFloat)progress {
@@ -529,12 +498,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
 }
 
 - (BOOL)downloadFile:(DBMetadata *)file replaceLocalVersion:(BOOL)replaceLocalVersion {
-    // Begin Background Process
-    self.backgroundProcess = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-        [[UIApplication sharedApplication] endBackgroundTask:self.backgroundProcess];
-        self.backgroundProcess = UIBackgroundTaskInvalid;
-    }];
-    
     // Check if the file is a directory
     if (file.isDirectory) return NO;
     

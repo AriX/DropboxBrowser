@@ -244,7 +244,10 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
         [cell.textLabel setNeedsDisplay];
         
         // Display icon
-        cell.imageView.image = [UIImage imageNamed:file.icon];
+        if ([UIImage respondsToSelector:@selector(imageNamed:inBundle:compatibleWithTraitCollection:)])
+            cell.imageView.image = [UIImage imageNamed:file.icon inBundle:[NSBundle bundleForClass:[self class]] compatibleWithTraitCollection:self.traitCollection];
+        else
+            cell.imageView.image = [UIImage imageNamed:file.icon];
         
         // Setup Last Modified Date
         NSLocale *locale = [NSLocale currentLocale];

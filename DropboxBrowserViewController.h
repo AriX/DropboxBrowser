@@ -93,6 +93,8 @@ NS_CLASS_AVAILABLE_IOS(6_0) @interface DropboxBrowserViewController : UITableVie
 /// Allowed file types (like a filter). Create an array of allowed file extensions. Leave this property nil to allow all files.
 @property (nonatomic, strong) NSArray *allowedFileTypes;
 
+// Save file mode
+@property (nonatomic, assign) BOOL saveMode;
 
 /// The tableview cell ID for dequeueing
 @property (nonatomic, strong) NSString *tableCellID;

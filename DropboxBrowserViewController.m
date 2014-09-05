@@ -108,9 +108,12 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
     if (self.currentPath == nil || [self.currentPath isEqualToString:@""]) self.currentPath = @"/";
     
     // Setup Navigation Bar, use different styles for iOS 7 and higher
-    UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", @"DropboxBrowser: Done Button to dismiss the DropboxBrowser View Controller") style:UIBarButtonItemStyleDone target:self action:@selector(removeDropboxBrowser)];
+    if (self.saveMode)
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(removeDropboxBrowser)];
+    else
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", @"DropboxBrowser: Done Button to dismiss the DropboxBrowser View Controller") style:UIBarButtonItemStyleDone target:self action:@selector(removeDropboxBrowser)];
+    
     // UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStylePlain target:self action:@selector(logoutDropbox)];
-    self.navigationItem.rightBarButtonItem = rightButton;
     // self.navigationItem.leftBarButtonItem = leftButton;
     
     if (self.shouldDisplaySearchBar == YES) {
@@ -212,7 +215,10 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
             if (self.isSearching == YES) {
                 cell.textLabel.text = NSLocalizedString(@"No Search Results", @"DropboxBrowser: Empty Search Results Text");
             } else {
-                cell.textLabel.text = NSLocalizedString(@"Folder is Empty", @"DropboxBroswer: Empty Folder Text");
+                if (self.saveMode)
+                    cell.textLabel.text = @"";
+                else
+                    cell.textLabel.text = NSLocalizedString(@"Folder is Empty", @"DropboxBroswer: Empty Folder Text");
             }
             
             cell.textLabel.textAlignment = NSTextAlignmentCenter;
@@ -281,6 +287,7 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
         if ([self.selectedFile isDirectory]) {
             // Create new UITableViewController
             self.subdirectoryController = [[DropboxBrowserViewController alloc] init];
+            self.subdirectoryController.saveMode = self.saveMode;
             self.subdirectoryController.rootViewDelegate = self.rootViewDelegate;
             NSString *subpath = [self.currentPath stringByAppendingPathComponent:self.selectedFile.filename];
             self.subdirectoryController.currentPath = subpath;
@@ -646,7 +653,7 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
         for (DBMetadata *file in metadata.contents) {
             if (![file.filename hasSuffix:@".exe"]) {
                 // Add to list if not '.exe' and either the file is a directory, there are no allowed files set or the file ext is contained in the allowed types
-                if ([file isDirectory] || self.allowedFileTypes.count == 0 || [self.allowedFileTypes containsObject:[file.filename pathExtension]] ) {
+                if ([file isDirectory] || (!self.saveMode && (self.allowedFileTypes.count == 0 || [self.allowedFileTypes containsObject:[file.filename pathExtension]]))) {
                     [dirList addObject:file];
                 }
             }

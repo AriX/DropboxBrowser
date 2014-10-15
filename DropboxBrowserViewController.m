@@ -108,10 +108,12 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
     if (self.currentPath == nil || [self.currentPath isEqualToString:@""]) self.currentPath = @"/";
     
     // Setup Navigation Bar, use different styles for iOS 7 and higher
-    if (self.saveMode)
+    if (self.saveMode) {
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelDropboxBrowser)];
         self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(removeDropboxBrowser)];
-    else
+    } else {
         self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", @"DropboxBrowser: Done Button to dismiss the DropboxBrowser View Controller") style:UIBarButtonItemStyleDone target:self action:@selector(removeDropboxBrowser)];
+    }
     
     // UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStylePlain target:self action:@selector(logoutDropbox)];
     // self.navigationItem.leftBarButtonItem = leftButton;
@@ -427,6 +429,16 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
 //------- DataController Delegate ----------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------------------------//
 #pragma mark - DataController Delegate
+
+- (void)cancelDropboxBrowser {
+    self.currentPath = nil;
+    self.currentFileName = nil;
+    
+    [self dismissViewControllerAnimated:YES completion:^{
+        if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserDismissed:)])
+            [[self rootViewDelegate] dropboxBrowserDismissed:self];
+    }];
+}
 
 - (void)removeDropboxBrowser {
     [self dismissViewControllerAnimated:YES completion:^{

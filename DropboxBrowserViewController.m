@@ -33,14 +33,9 @@
 
 // Check for ARC
 #if !__has_feature(objc_arc)
-    // Add the -fobjc-arc flag to enable ARC for only these files, as described in the ARC documentation: http://clang.llvm.org/docs/AutomaticReferenceCounting.html
-    #error DropboxBrowser is built with Objective-C ARC. You must enable ARC for DropboxBrowser.
+// Add the -fobjc-arc flag to enable ARC for only these files, as described in the ARC documentation: http://clang.llvm.org/docs/AutomaticReferenceCounting.html
+#error DropboxBrowser is built with Objective-C ARC. You must enable ARC for DropboxBrowser.
 #endif
-
-// View tags to differeniate alert views
-static NSUInteger const kDBSignInAlertViewTag = 1;
-static NSUInteger const kFileExistsAlertViewTag = 2;
-static NSUInteger const kDBSignOutAlertViewTag = 3;
 
 @interface DropboxBrowserViewController () <DBRestClientDelegate>
 
@@ -78,12 +73,12 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
 #pragma mark  - View Lifecycle
 
 - (instancetype)init {
-	self = [super init];
-	if (self)  {
+    self = [super init];
+    if (self)  {
         // Custom initialization
         [self basicSetup];
-	}
-	return self;
+    }
+    return self;
 }
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
@@ -180,17 +175,41 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-//    if (![self isDropboxLinked]) {
-//        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Login to Dropbox", @"DropboxBrowser: Alert Title") message:[NSString stringWithFormat:NSLocalizedString(@"%@ is not linked to your Dropbox. Would you like to login now and allow access?", @"DropboxBrowser: Alert Message. 'APP NAME' is not linked to Dropbox..."), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]] delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", @"DropboxBrowser: Alert Button") otherButtonTitles:NSLocalizedString(@"Login", @"DropboxBrowser: Alert Button"), nil];
-//        alertView.tag = kDBSignInAlertViewTag;
-//        [alertView show];
-//    }
+    if (![self isDropboxLinked]) {
+        /*
+         id<WFUserInterfaceProvider> userInterfaceProvider = WFUserInterfaceProviderFromViewController(self);
+         WFAlert *alert = [WFAlert alertWithUserInterface:userInterfaceProvider preferredStyle:WFAlertStyleAlert];
+         alert.title = NSLocalizedString(@"Login to Dropbox", @"DropboxBrowser: Alert Title");
+         alert.message = [NSString stringWithFormat:NSLocalizedString(@"%@ is not linked to your Dropbox. Would you like to login now and allow access?", @"DropboxBrowser: Alert Message. 'APP NAME' is not linked to Dropbox..."), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]];
+         
+         [alert addButton:[WFAlertButton cancelButtonWithHandler:^(WFAlertButton *button) {
+         [self removeDropboxBrowser];
+         }]];
+         
+         [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Login", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDefault handler:^(WFAlertButton *button) {
+         [[DBSession sharedSession] linkFromController:self];
+         }]];
+         
+         [alert present];
+         */
+    }
 }
 
 - (void)logoutOfDropbox {
-//    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Logout of Dropbox", @"DropboxBrowser: Alert Title") message:[NSString stringWithFormat:NSLocalizedString(@"Are you sure you want to logout of Dropbox and revoke Dropbox access for %@?", @"DropboxBrowser: Alert Message. ...revoke Dropbox access for 'APP NAME'"), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]] delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", @"DropboxBrowser: Alert Button") otherButtonTitles:NSLocalizedString(@"Logout", @"DropboxBrowser: Alert Button"), nil];
-//    alertView.tag = kDBSignOutAlertViewTag;
-//    [alertView show];
+    /*
+     id<WFUserInterfaceProvider> userInterfaceProvider = WFUserInterfaceProviderFromViewController(self);
+     WFAlert *alert = [WFAlert alertWithUserInterface:userInterfaceProvider preferredStyle:WFAlertStyleAlert];
+     alert.title = NSLocalizedString(@"Logout to Dropbox", @"DropboxBrowser: Alert Title");
+     alert.message = [NSString stringWithFormat:NSLocalizedString(@"Are you sure you want to logout of Dropbox and revoke Dropbox access for %@?", @"DropboxBrowser: Alert Message. ...revoke Dropbox access for 'APP NAME'"), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]];
+     
+     [alert addButton:[WFAlertButton cancelButtonWithHandler:nil]];
+     [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Logout", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDefault handler:^(WFAlertButton *button) {
+     [[DBSession sharedSession] unlinkAll];
+     [self removeDropboxBrowser];
+     }]];
+     
+     [alert present];
+     */
 }
 
 //------------------------------------------------------------------------------------------------------------//
@@ -369,47 +388,6 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
 }
 
 //------------------------------------------------------------------------------------------------------------//
-//------- AlertView Delegate ---------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
-#pragma mark - AlertView Delegate
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (alertView.tag == kDBSignInAlertViewTag) {
-        switch (buttonIndex) {
-            case 0:
-                [self removeDropboxBrowser];
-                break;
-            case 1:
-                [[DBSession sharedSession] linkFromController:self];
-                break;
-            default:
-                break;
-        }
-    } else if (alertView.tag == kFileExistsAlertViewTag) {
-        switch (buttonIndex) {
-            case 0:
-                break;
-            case 1:
-                // User selected overwrite
-                [self downloadFile:self.selectedFile replaceLocalVersion:YES];
-                break;
-            default:
-                break;
-        }
-    } else if (alertView.tag == kDBSignOutAlertViewTag) {
-        switch (buttonIndex) {
-            case 0: break;
-            case 1: {
-                [[DBSession sharedSession] unlinkAll];
-                [self removeDropboxBrowser];
-            } break;
-            default:
-                break;
-        }
-    }
-}
-
-//------------------------------------------------------------------------------------------------------------//
 //------- Content Refresh ------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------------------------//
 #pragma mark - Content Refresh
@@ -563,73 +541,45 @@ static NSUInteger const kDBSignOutAlertViewTag = 3;
             NSComparisonResult result;
             result = [file.lastModifiedDate compare:fileDate]; // Compare the Dates
             
+            id<WFUserInterfaceProvider> userInterfaceProvider = WFUserInterfaceProviderFromViewController(self);
+            
+            WFAlert *alert = [WFAlert alertWithUserInterface:userInterfaceProvider preferredStyle:WFAlertStyleAlert];
+            alert.title = NSLocalizedString(@"File Conflict", @"DropboxBrowser: Alert Title");
+            
+            [alert addButton:[WFAlertButton cancelButtonWithHandler:nil]];
+            [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Overwrite", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDestructive handler:^(WFAlertButton *button) {
+                [self downloadFile:self.selectedFile replaceLocalVersion:YES];
+            }]];
+            
+            NSDictionary *infoDictionary;
+            NSError *error;
+            
             if (result == NSOrderedAscending) {
                 // Dropbox file is older than local file
-                WFAlertView *alertView = [WFAlertView new];
-                alertView.title = NSLocalizedString(@"File Conflict", @"DropboxBrowser: Alert Title");
-                alertView.message = [NSString stringWithFormat:NSLocalizedString(@"%@ has already been downloaded from Dropbox. You can overwrite the local version with the Dropbox one. The file in local files is newer than the Dropbox file.", @"DropboxBrowser: Alert Message"), file.filename];
-                alertView.delegate = self;
-                alertView.cancelButtonIndex = [alertView addButtonWithTitle:NSLocalizedString(@"Cancel", @"DropboxBrowser: Alert Button")];
-                [alertView addButtonWithTitle:NSLocalizedString(@"Overwrite", @"DropboxBrowser: Alert Button")];
-                alertView.tag = kFileExistsAlertViewTag;
-                [alertView showAsAlertControllerInViewController:self];
-                
-                NSDictionary *infoDictionary = @{@"file": file, @"message": @"File already exists in Dropbox and locally. The local file is newer."};
-                NSError *error = [NSError errorWithDomain:@"[DropboxBrowser] File Conflict Error: File already exists in Dropbox and locally. The local file is newer." code:kDBDropboxFileOlderError userInfo:infoDictionary];
-                
-                if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:fileConflictWithLocalFile:withDropboxFile:withError:)]) {
-                    [self.rootViewDelegate dropboxBrowser:self fileConflictWithLocalFile:fileUrl withDropboxFile:file withError:error];
-                } else if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:fileConflictError:)]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-                    [[self rootViewDelegate] dropboxBrowser:self fileConflictError:infoDictionary];
-#pragma clang diagnostic pop
-                }
+                alert.message = [NSString stringWithFormat:NSLocalizedString(@"%@ has already been downloaded from Dropbox. You can overwrite the local version with the Dropbox one. The file in local files is newer than the Dropbox file.", @"DropboxBrowser: Alert Message"), file.filename];
+                infoDictionary = @{@"file": file, @"message": @"File already exists in Dropbox and locally. The local file is newer."};
+                error = [NSError errorWithDomain:@"[DropboxBrowser] File Conflict Error: File already exists in Dropbox and locally. The local file is newer." code:kDBDropboxFileOlderError userInfo:infoDictionary];
                 
             } else if (result == NSOrderedDescending) {
                 // Dropbox file is newer than local file
-                WFAlertView *alertView = [WFAlertView new];
-                alertView.title = NSLocalizedString(@"File Conflict", @"DropboxBrowser: Alert Title");
-                alertView.message = [NSString stringWithFormat:NSLocalizedString(@"%@ has already been downloaded from Dropbox. You can overwrite the local version with the Dropbox file. The file in Dropbox is newer than the local file.", @"DropboxBrowser: Alert Message"), file.filename];
-                alertView.delegate = self;
-                alertView.cancelButtonIndex = [alertView addButtonWithTitle:NSLocalizedString(@"Cancel", @"DropboxBrowser: Alert Button")];
-                [alertView addButtonWithTitle:NSLocalizedString(@"Overwrite", @"DropboxBrowser: Alert Button")];
-                alertView.tag = kFileExistsAlertViewTag;
-                [alertView showAsAlertControllerInViewController:self];
+                alert.message = [NSString stringWithFormat:NSLocalizedString(@"%@ has already been downloaded from Dropbox. You can overwrite the local version with the Dropbox file. The file in Dropbox is newer than the local file.", @"DropboxBrowser: Alert Message"), file.filename];
+                infoDictionary = @{@"file": file, @"message": @"File already exists in Dropbox and locally. The Dropbox file is newer."};
+                error = [NSError errorWithDomain:@"[DropboxBrowser] File Conflict Error: File already exists in Dropbox and locally. The Dropbox file is newer." code:kDBDropboxFileNewerError userInfo:infoDictionary];
                 
-                NSDictionary *infoDictionary = @{@"file": file, @"message": @"File already exists in Dropbox and locally. The Dropbox file is newer."};
-                NSError *error = [NSError errorWithDomain:@"[DropboxBrowser] File Conflict Error: File already exists in Dropbox and locally. The Dropbox file is newer." code:kDBDropboxFileNewerError userInfo:infoDictionary];
-                
-                if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:fileConflictWithLocalFile:withDropboxFile:withError:)]) {
-                    [self.rootViewDelegate dropboxBrowser:self fileConflictWithLocalFile:fileUrl withDropboxFile:file withError:error];
-                } else if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:fileConflictError:)]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-                    [[self rootViewDelegate] dropboxBrowser:self fileConflictError:infoDictionary];
-#pragma clang diagnostic pop
-                }
             } else if (result == NSOrderedSame) {
                 // Dropbox File and local file were both modified at the same time
-                WFAlertView *alertView = [WFAlertView new];
-                alertView.title = NSLocalizedString(@"File Conflict", @"DropboxBrowser: Alert Title");
-                alertView.message = [NSString stringWithFormat:NSLocalizedString(@"%@ has already been downloaded from Dropbox. You can overwrite the local version with the Dropbox file. Both the local file and the Dropbox file were modified at the same time.", @"DropboxBrowser: Alert Message"), file.filename];
-                alertView.delegate = self;
-                alertView.cancelButtonIndex = [alertView addButtonWithTitle:NSLocalizedString(@"Cancel", @"DropboxBrowser: Alert Button")];
-                [alertView addButtonWithTitle:NSLocalizedString(@"Overwrite", @"DropboxBrowser: Alert Button")];
-                alertView.tag = kFileExistsAlertViewTag;
-                [alertView showAsAlertControllerInViewController:self];
-                
-                NSDictionary *infoDictionary = @{@"file": file, @"message": @"File already exists in Dropbox and locally. Both files were modified at the same time."};
-                NSError *error = [NSError errorWithDomain:@"[DropboxBrowser] File Conflict Error: File already exists in Dropbox and locally. Both files were modified at the same time." code:kDBDropboxFileSameAsLocalFileError userInfo:infoDictionary];
-                
-                if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:fileConflictWithLocalFile:withDropboxFile:withError:)]) {
-                    [self.rootViewDelegate dropboxBrowser:self fileConflictWithLocalFile:fileUrl withDropboxFile:file withError:error];
-                } else if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:fileConflictError:)]) {
+                alert.message = [NSString stringWithFormat:NSLocalizedString(@"%@ has already been downloaded from Dropbox. You can overwrite the local version with the Dropbox file. Both the local file and the Dropbox file were modified at the same time.", @"DropboxBrowser: Alert Message"), file.filename];
+                infoDictionary = @{@"file": file, @"message": @"File already exists in Dropbox and locally. Both files were modified at the same time."};
+                error = [NSError errorWithDomain:@"[DropboxBrowser] File Conflict Error: File already exists in Dropbox and locally. Both files were modified at the same time." code:kDBDropboxFileSameAsLocalFileError userInfo:infoDictionary];
+            }
+            
+            if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:fileConflictWithLocalFile:withDropboxFile:withError:)]) {
+                [self.rootViewDelegate dropboxBrowser:self fileConflictWithLocalFile:fileUrl withDropboxFile:file withError:error];
+            } else if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:fileConflictError:)]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-                    [[self rootViewDelegate] dropboxBrowser:self fileConflictError:infoDictionary];
+                [[self rootViewDelegate] dropboxBrowser:self fileConflictError:infoDictionary];
 #pragma clang diagnostic pop
-                }
             }
             
             [self updateTableData];

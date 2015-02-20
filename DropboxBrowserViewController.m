@@ -104,7 +104,9 @@
     
     // Setup Navigation Bar, use different styles for iOS 7 and higher
     if (self.saveMode) {
-        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelDropboxBrowser)];
+        if ([self.currentPath isEqualToString:@"/"])
+            self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelDropboxBrowser)];
+        
         self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(removeDropboxBrowser)];
     } else {
         self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", @"DropboxBrowser: Done Button to dismiss the DropboxBrowser View Controller") style:UIBarButtonItemStyleDone target:self action:@selector(removeDropboxBrowser)];

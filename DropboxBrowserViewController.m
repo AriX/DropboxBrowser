@@ -49,6 +49,7 @@
 
 @property (nonatomic, assign) BOOL isLocalFileOverwritten;
 @property (nonatomic, assign) BOOL isSearching;
+@property (nonatomic, assign) BOOL isRequestingFolderContents;
 
 @property (nonatomic, strong) DropboxBrowserViewController *subdirectoryController;
 
@@ -93,6 +94,7 @@
 - (void)basicSetup {
     _currentPath = @"/";
     _isLocalFileOverwritten = NO;
+    _isRequestingFolderContents = NO;
 }
 
 - (void)viewDidLoad {
@@ -172,6 +174,20 @@
     // Initialize Directory Content
     if ([self.currentPath isEqualToString:@"/"]) {
         [self listDirectoryAtPath:@"/"];
+    }
+    
+    // Setup Toolbar (for grabbing contents of folder)
+    if (!self.saveMode) {
+        UIButton *contentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [contentsButton setTitle:@"Get Every File in Folder" forState:UIControlStateNormal];
+        [contentsButton setTitleColor:[UIColor colorWithRed:0.063 green:0.478 blue:0.969 alpha:1.000] forState:UIControlStateNormal];
+        [contentsButton addTarget:self action:@selector(getContentsOfFolder) forControlEvents:UIControlEventTouchUpInside];
+        [contentsButton sizeToFit];
+        
+        UIBarButtonItem *spacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:@selector(getContentsOfFolder)];
+        UIBarButtonItem *customButton = [[UIBarButtonItem alloc] initWithCustomView:contentsButton];
+        [self setToolbarItems:@[spacer, customButton, spacer] animated:YES];
+        self.navigationController.toolbarHidden = NO;
     }
 }
 
@@ -485,6 +501,11 @@
 //------- Files and Directories ------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------------------------//
 #pragma mark - Dropbox File and Directory Functions
+         
+- (void)getContentsOfFolder {
+    self.isRequestingFolderContents = YES;
+    [self.restClient loadMetadata:self.currentPath];
+}
 
 - (BOOL)listDirectoryAtPath:(NSString *)path {
     if ([self isDropboxLinked]) {
@@ -611,6 +632,12 @@
 }
 
 - (void)restClient:(DBRestClient *)client loadedMetadata:(DBMetadata *)metadata {
+    if (self.isRequestingFolderContents) {
+        if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:didSelectFile:)])
+            [self.rootViewDelegate dropboxBrowser:self didSelectFile:metadata];
+        return;
+    }
+    
     NSMutableArray *dirList = [[NSMutableArray alloc] init];
     
     if (metadata.isDirectory) {

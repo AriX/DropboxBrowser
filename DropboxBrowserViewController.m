@@ -179,8 +179,8 @@
     [super viewWillAppear:animated];
     if (![self isDropboxLinked]) {
         /*
-         id<WFUserInterfaceProvider> userInterfaceProvider = WFUserInterfaceProviderFromViewController(self);
-         WFAlert *alert = [WFAlert alertWithUserInterface:userInterfaceProvider preferredStyle:WFAlertStyleAlert];
+         id<WFUserInterface> userInterface = WFUserInterfaceFromViewController(self);
+         WFAlert *alert = [WFAlert alertWithUserInterface:userInterface preferredStyle:WFAlertStyleAlert];
          alert.title = NSLocalizedString(@"Login to Dropbox", @"DropboxBrowser: Alert Title");
          alert.message = [NSString stringWithFormat:NSLocalizedString(@"%@ is not linked to your Dropbox. Would you like to login now and allow access?", @"DropboxBrowser: Alert Message. 'APP NAME' is not linked to Dropbox..."), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]];
          
@@ -199,8 +199,8 @@
 
 - (void)logoutOfDropbox {
     /*
-     id<WFUserInterfaceProvider> userInterfaceProvider = WFUserInterfaceProviderFromViewController(self);
-     WFAlert *alert = [WFAlert alertWithUserInterface:userInterfaceProvider preferredStyle:WFAlertStyleAlert];
+     id<WFUserInterface> userInterface = WFUserInterfaceFromViewController(self);
+     WFAlert *alert = [WFAlert alertWithUserInterface:userInterface preferredStyle:WFAlertStyleAlert];
      alert.title = NSLocalizedString(@"Logout to Dropbox", @"DropboxBrowser: Alert Title");
      alert.message = [NSString stringWithFormat:NSLocalizedString(@"Are you sure you want to logout of Dropbox and revoke Dropbox access for %@?", @"DropboxBrowser: Alert Message. ...revoke Dropbox access for 'APP NAME'"), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]];
      
@@ -543,9 +543,9 @@
             NSComparisonResult result;
             result = [file.lastModifiedDate compare:fileDate]; // Compare the Dates
             
-            id<WFUserInterfaceProvider> userInterfaceProvider = WFUserInterfaceProviderFromViewController(self);
+            id<WFUserInterface> userInterface = WFUserInterfaceFromViewController(self);
             
-            WFAlert *alert = [WFAlert alertWithUserInterface:userInterfaceProvider preferredStyle:WFAlertStyleAlert];
+            WFAlert *alert = [WFAlert alertWithUserInterface:userInterface preferredStyle:WFAlertStyleAlert];
             alert.title = NSLocalizedString(@"File Conflict", @"DropboxBrowser: Alert Title");
             
             [alert addButton:[WFAlertButton cancelButtonWithHandler:nil]];

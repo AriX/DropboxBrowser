@@ -184,11 +184,11 @@
          alert.title = NSLocalizedString(@"Login to Dropbox", @"DropboxBrowser: Alert Title");
          alert.message = [NSString stringWithFormat:NSLocalizedString(@"%@ is not linked to your Dropbox. Would you like to login now and allow access?", @"DropboxBrowser: Alert Message. 'APP NAME' is not linked to Dropbox..."), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]];
          
-         [alert addButton:[WFAlertButton cancelButtonWithHandler:^(WFAlertButton *button) {
+         [alert addButton:[WFAlertButton cancelButtonWithHandler:^(NSArray *textFieldResults) {
          [self removeDropboxBrowser];
          }]];
          
-         [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Login", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDefault handler:^(WFAlertButton *button) {
+         [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Login", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDefault handler:^(NSArray *textFieldResults) {
          [[DBSession sharedSession] linkFromController:self];
          }]];
          
@@ -205,7 +205,7 @@
      alert.message = [NSString stringWithFormat:NSLocalizedString(@"Are you sure you want to logout of Dropbox and revoke Dropbox access for %@?", @"DropboxBrowser: Alert Message. ...revoke Dropbox access for 'APP NAME'"), [[NSBundle bundleForClass:[self class]] infoDictionary][@"CFBundleDisplayName"]];
      
      [alert addButton:[WFAlertButton cancelButtonWithHandler:nil]];
-     [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Logout", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDefault handler:^(WFAlertButton *button) {
+     [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Logout", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDefault handler:^(NSArray *textFieldResults) {
      [[DBSession sharedSession] unlinkAll];
      [self removeDropboxBrowser];
      }]];
@@ -543,13 +543,11 @@
             NSComparisonResult result;
             result = [file.lastModifiedDate compare:fileDate]; // Compare the Dates
             
-            id<WFUserInterface> userInterface = WFUserInterfaceFromViewController(self);
-            
-            WFAlert *alert = [WFAlert alertWithUserInterface:userInterface preferredStyle:WFAlertStyleAlert];
+            WFAlert *alert = [WFAlert new];
             alert.title = NSLocalizedString(@"File Conflict", @"DropboxBrowser: Alert Title");
             
             [alert addButton:[WFAlertButton cancelButtonWithHandler:nil]];
-            [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Overwrite", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDestructive handler:^(WFAlertButton *button) {
+            [alert addButton:[WFAlertButton buttonWithTitle:NSLocalizedString(@"Overwrite", @"DropboxBrowser: Alert Button") style:WFAlertButtonStyleDestructive handler:^(NSArray *textFieldResults) {
                 [self downloadFile:self.selectedFile replaceLocalVersion:YES];
             }]];
             
@@ -584,6 +582,7 @@
 #pragma clang diagnostic pop
             }
             
+            [WFUserInterfaceFromViewController(self) presentAlert:alert];
             [self updateTableData];
         } else {
             downloadSuccess = NO;

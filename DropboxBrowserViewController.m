@@ -122,12 +122,15 @@
         searchBar.placeholder = [NSString stringWithFormat:NSLocalizedString(@"Search %@", @"DropboxBrowser: Search Field Placeholder Text. Search 'CURRENT FOLDER NAME'"), self.title];
         self.tableView.tableHeaderView = searchBar;
         
-        // Setup Search Controller
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        // Set up Search Controller
         UISearchDisplayController *searchController = [[UISearchDisplayController alloc] initWithSearchBar:searchBar contentsController:self];
         searchController.searchResultsDataSource = self;
         searchController.searchResultsDelegate = self;
         searchController.delegate = self;
         self.tableView.contentOffset = CGPointMake(0, self.searchDisplayController.searchBar.frame.size.height);
+#pragma clang diagnostic pop
     }
     
     // Add Download Progress View to Navigation Bar
